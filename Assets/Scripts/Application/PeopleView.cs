@@ -342,6 +342,16 @@ public class PeopleView : MonoBehaviour
             return;
         }
 
+        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
+        {
+            shouldReloadPeople = true;
+            yearToLoad = loadedYear;
+            semesterToLoad = loadedSemester;
+            courseIdToLoad = courseId;
+
+            return;
+        }
+
         loadedCourseId = courseId;
 
         DumpPoints();
