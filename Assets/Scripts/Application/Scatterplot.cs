@@ -21,24 +21,33 @@ public class Scatterplot : MonoBehaviour
     int loadedYear = DEFAULT_YEAR;
     int loadedSemester = DEFAULT_SEMESTER;
 
+    bool shouldReloadScatterplot = false;
+    int yearToLoad = DEFAULT_YEAR;
+    int semesterToLoad = DEFAULT_SEMESTER;
+
     void Start()
     {
         ParseDataset("Assets/Resources/Data/data-by-semesters.json");
         LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER);
-
-        // disable Object Manipultor
-        // gameObject.GetComponent<ObjectManipulator>().enabled = false;
-
-
-        // disable MeshRenderer of all points
-        foreach (ScatterplotDataPoint point in scatterplotPoints)
-        {
-            // point.gameObject.GetComponent<MeshRenderer>().enabled = false;
-        }
     }
 
     void Update()
     {
+        if (
+            GameManager.Instance.IsViewEnabled(ApplicationView.Scatterplot) == false
+            || shouldReloadScatterplot == false
+        )
+        {
+            return;
+        }
+
+        shouldReloadScatterplot = false;
+
+        loadedYear = yearToLoad;
+        loadedSemester = semesterToLoad;
+
+        DumpPoints();
+        LoadPoints(yearToLoad, semesterToLoad);
     }
 
     public void ParseDataset(string datasetPath)
@@ -52,7 +61,10 @@ public class Scatterplot : MonoBehaviour
 
     public void LoadPoints(int year, int semester)
     {
-        if (scatterplotPoints != null) DumpPoints();
+        Debug.Log("Loading points for year " + year + " and semester " + semester);
+
+        if (scatterplotPoints != null)
+            DumpPoints();
 
         scatterplotPoints = new List<ScatterplotDataPoint>();
 
@@ -83,22 +95,31 @@ public class Scatterplot : MonoBehaviour
             int courseMen = 0;
             int courseDiff = 0;
 
-            foreach (ClassificationUFF sex in course.sex) {
-                if (sex.name == "F") {
+            foreach (ClassificationUFF sex in course.sex)
+            {
+                if (sex.name == "F")
+                {
                     courseWomen = sex.total;
                 }
 
-                if (sex.name == "M") {
+                if (sex.name == "M")
+                {
                     courseMen = sex.total;
                 }
             }
 
-            if (courseWomen == 0 || courseMen == 0) {
+            if (courseWomen == 0 || courseMen == 0)
+            {
                 courseDiff = 1;
-            } else {
-                if (courseWomen > courseMen) {
+            }
+            else
+            {
+                if (courseWomen > courseMen)
+                {
                     courseDiff = Mathf.Abs(Mathf.RoundToInt(courseWomen / courseMen));
-                } else {
+                }
+                else
+                {
                     courseDiff = Mathf.Abs(Mathf.RoundToInt(courseMen / courseWomen));
                 }
             }
@@ -124,44 +145,46 @@ public class Scatterplot : MonoBehaviour
             int courseWomen = 0;
             int courseMen = 0;
             int courseDiff = 0;
-            
-            foreach (ClassificationUFF sex in course.sex) {
-                if (sex.name == "F") {
+
+            foreach (ClassificationUFF sex in course.sex)
+            {
+                if (sex.name == "F")
+                {
                     courseWomen = sex.total;
                 }
 
-                if (sex.name == "M") {
+                if (sex.name == "M")
+                {
                     courseMen = sex.total;
                 }
             }
 
-            if (courseWomen == 0 || courseMen == 0) {
+            if (courseWomen == 0 || courseMen == 0)
+            {
                 courseDiff = 1;
-            } else {
-                if (courseWomen > courseMen) {
+            }
+            else
+            {
+                if (courseWomen > courseMen)
+                {
                     courseDiff = Mathf.Abs(Mathf.RoundToInt(courseWomen / courseMen));
-                } else {
+                }
+                else
+                {
                     courseDiff = Mathf.Abs(Mathf.RoundToInt(courseMen / courseWomen));
                 }
             }
 
-            float x =
-                normalizationFactor *
-                System.Convert.ToSingle(courseWomen) /
-                maxWomen;
-            float y =
-                normalizationFactor *
-                System.Convert.ToSingle(courseDiff) /
-                maxDiff;
-            float z =
-                normalizationFactor *
-                System.Convert.ToSingle(courseMen) /
-                maxMen;
+            float x = normalizationFactor * System.Convert.ToSingle(courseWomen) / maxWomen;
+            float y = normalizationFactor * System.Convert.ToSingle(courseDiff) / maxDiff;
+            float z = normalizationFactor * System.Convert.ToSingle(courseMen) / maxMen;
 
-            ScatterplotDataPoint newDataPoint =
-                Instantiate(pointPrefab,
-                new Vector3(x, y, z),
-                Quaternion.identity).GetComponent<ScatterplotDataPoint>();
+            ScatterplotDataPoint newDataPoint = Instantiate(
+                    pointPrefab,
+                    new Vector3(x, y, z),
+                    Quaternion.identity
+                )
+                .GetComponent<ScatterplotDataPoint>();
 
             newDataPoint.transform.position += this.transform.position;
             newDataPoint.transform.parent = this.transform;
@@ -169,8 +192,7 @@ public class Scatterplot : MonoBehaviour
 
             newDataPoint.dataClass = course.id.ToString();
 
-            newDataPoint.textLabel.text =
-                course.name + " (" + newDataPoint.dataClass + ")";
+            newDataPoint.textLabel.text = course.name + " (" + newDataPoint.dataClass + ")";
 
             Color newColor = new Color();
 
@@ -183,10 +205,8 @@ public class Scatterplot : MonoBehaviour
             newDataPoint.GetComponent<Renderer>().material.color = newColor;
             newDataPoint.pointColor = newColor;
 
-            scatterplotPoints.Add (newDataPoint);
+            scatterplotPoints.Add(newDataPoint);
         }
-
-        // Should also adjust size of scatterplot collider box here based on points positions
     }
 
     public void DumpPoints()
@@ -207,7 +227,17 @@ public class Scatterplot : MonoBehaviour
         var year = FIRST_YEAR + (int)(value / 2);
         var semester = isEven ? 1 : 2;
 
-        if (year == loadedYear && semester == loadedSemester) {
+        if (year == loadedYear && semester == loadedSemester)
+        {
+            return;
+        }
+
+        if (GameManager.Instance.IsViewEnabled(ApplicationView.Scatterplot) == false)
+        {
+            shouldReloadScatterplot = true;
+            yearToLoad = year;
+            semesterToLoad = semester;
+
             return;
         }
 

@@ -46,6 +46,11 @@ public class PeopleView : MonoBehaviour
     float lastFrameScale = 1.0f;
     float virtualScale = 1.0f;
 
+    bool shouldReloadPeople = false;
+    int yearToLoad = DEFAULT_YEAR;
+    int semesterToLoad = DEFAULT_SEMESTER;
+    int courseIdToLoad = DEFAULT_COURSE_ID;
+
     void Start()
     {
         Collider selfCollider = gameObject.GetComponent<Collider>();
@@ -65,6 +70,23 @@ public class PeopleView : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
+        {
+            return;
+        }
+
+        if (shouldReloadPeople)
+        {
+            shouldReloadPeople = false;
+
+            loadedYear = yearToLoad;
+            loadedSemester = semesterToLoad;
+            loadedCourseId = courseIdToLoad;
+
+            DumpPoints();
+            LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad);
+        }
+
         gameObject.transform.rotation = Quaternion.identity;
 
         float changeInScale = gameObject.transform.localScale.x - lastFrameScale;
@@ -129,6 +151,8 @@ public class PeopleView : MonoBehaviour
 
     public void LoadPoints(int year, int semester, int courseId, bool grouped = false)
     {
+        Debug.Log("Loading points for year " + year + " and semester " + semester);
+
         if (people != null)
             DumpPoints();
 
@@ -315,6 +339,16 @@ public class PeopleView : MonoBehaviour
 
         if (year == loadedYear && semester == loadedSemester)
         {
+            return;
+        }
+
+        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
+        {
+            shouldReloadPeople = true;
+            yearToLoad = year;
+            semesterToLoad = semester;
+            courseIdToLoad = loadedCourseId;
+
             return;
         }
 

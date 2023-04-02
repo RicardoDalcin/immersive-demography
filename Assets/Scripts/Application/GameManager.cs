@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum ApplicationView
+public enum ApplicationView
 {
-    scatterplot,
-    peopleView
+    Scatterplot,
+    PeopleView
 };
 
 public class GameManager : Singleton<GameManager>
@@ -17,7 +17,7 @@ public class GameManager : Singleton<GameManager>
 
     void Start()
     {
-        currentView = ApplicationView.scatterplot;
+        currentView = ApplicationView.Scatterplot;
         EnableView(currentView);
     }
 
@@ -31,13 +31,13 @@ public class GameManager : Singleton<GameManager>
 
     public void SwitchView()
     {
-        if (currentView == ApplicationView.scatterplot)
+        if (currentView == ApplicationView.Scatterplot)
         {
-            currentView = ApplicationView.peopleView;
+            currentView = ApplicationView.PeopleView;
         }
-        else if (currentView == ApplicationView.peopleView)
+        else if (currentView == ApplicationView.PeopleView)
         {
-            currentView = ApplicationView.scatterplot;
+            currentView = ApplicationView.Scatterplot;
         }
 
         EnableView(currentView);
@@ -45,7 +45,7 @@ public class GameManager : Singleton<GameManager>
 
     void EnableView(ApplicationView view)
     {
-        if (view == ApplicationView.scatterplot)
+        if (view == ApplicationView.Scatterplot)
         {
             scatterplot.SetActive(true);
             peopleView.SetActive(false);
@@ -64,7 +64,7 @@ public class GameManager : Singleton<GameManager>
                 behaviour.enabled = false;
             }
         }
-        else if (view == ApplicationView.peopleView)
+        else if (view == ApplicationView.PeopleView)
         {
             scatterplot.SetActive(false);
             peopleView.SetActive(true);
@@ -87,5 +87,19 @@ public class GameManager : Singleton<GameManager>
                 behaviour.enabled = false;
             }
         }
+    }
+
+    public bool IsViewEnabled(ApplicationView view)
+    {
+        if (view == ApplicationView.Scatterplot)
+        {
+            return scatterplot.activeSelf;
+        }
+        else if (view == ApplicationView.PeopleView)
+        {
+            return peopleView.activeSelf;
+        }
+
+        return false;
     }
 }
