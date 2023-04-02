@@ -14,8 +14,6 @@ public class Scatterplot : MonoBehaviour
     public const int DEFAULT_YEAR = 2017;
     public const int DEFAULT_SEMESTER = 1;
 
-    List<SemesterUFF> semestersList = null;
-
     List<ScatterplotDataPoint> scatterplotPoints = null;
 
     int loadedYear = DEFAULT_YEAR;
@@ -27,7 +25,6 @@ public class Scatterplot : MonoBehaviour
 
     void Start()
     {
-        ParseDataset("Assets/Resources/Data/data-by-semesters.json");
         LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER);
     }
 
@@ -50,34 +47,16 @@ public class Scatterplot : MonoBehaviour
         LoadPoints(yearToLoad, semesterToLoad);
     }
 
-    public void ParseDataset(string datasetPath)
-    {
-        string text = File.ReadAllText(datasetPath);
-
-        SemestersUFF semesters = JsonUtility.FromJson<SemestersUFF>(text);
-
-        semestersList = semesters.Semester;
-    }
-
     public void LoadPoints(int year, int semester)
     {
-        Debug.Log("Loading points for year " + year + " and semester " + semester);
+        Debug.Log("Scatterplot: loading points for year " + year + " and semester " + semester);
 
         if (scatterplotPoints != null)
             DumpPoints();
 
         scatterplotPoints = new List<ScatterplotDataPoint>();
 
-        SemesterUFF requestedSemester = null;
-
-        foreach (SemesterUFF semesterItem in semestersList)
-        {
-            if (semesterItem.year == year && semesterItem.period == semester)
-            {
-                requestedSemester = semesterItem;
-                break;
-            }
-        }
+        SemesterUFF requestedSemester = DataManager.Instance.GetSemester(year, semester);
 
         if (requestedSemester == null)
         {
@@ -87,54 +66,23 @@ public class Scatterplot : MonoBehaviour
 
         int maxWomen = 0;
         int maxMen = 0;
-        int maxDiff = 0;
+        float maxDiff = 0.0f;
 
         foreach (CourseUFF course in requestedSemester.courses)
         {
-            int courseWomen = 0;
-            int courseMen = 0;
-            int courseDiff = 0;
+            SexClassification sexClassification = DataManager.Instance.GetSexClassification(course);
 
-            foreach (ClassificationUFF sex in course.sex)
+            if (sexClassification.totalWomen > maxWomen)
             {
-                if (sex.name == "F")
-                {
-                    courseWomen = sex.total;
-                }
-
-                if (sex.name == "M")
-                {
-                    courseMen = sex.total;
-                }
+                maxWomen = sexClassification.totalWomen;
             }
-
-            if (courseWomen == 0 || courseMen == 0)
+            if (sexClassification.totalMen > maxMen)
             {
-                courseDiff = 1;
+                maxMen = sexClassification.totalMen;
             }
-            else
+            if (sexClassification.difference > maxDiff)
             {
-                if (courseWomen > courseMen)
-                {
-                    courseDiff = Mathf.Abs(Mathf.RoundToInt(courseWomen / courseMen));
-                }
-                else
-                {
-                    courseDiff = Mathf.Abs(Mathf.RoundToInt(courseMen / courseWomen));
-                }
-            }
-
-            if (courseWomen > maxWomen)
-            {
-                maxWomen = courseWomen;
-            }
-            if (courseMen > maxMen)
-            {
-                maxMen = courseMen;
-            }
-            if (courseDiff > maxDiff)
-            {
-                maxDiff = courseDiff;
+                maxDiff = sexClassification.difference;
             }
         }
 
@@ -142,42 +90,20 @@ public class Scatterplot : MonoBehaviour
         {
             float normalizationFactor = 0.5f;
 
-            int courseWomen = 0;
-            int courseMen = 0;
-            int courseDiff = 0;
+            SexClassification sexClassification = DataManager.Instance.GetSexClassification(course);
 
-            foreach (ClassificationUFF sex in course.sex)
-            {
-                if (sex.name == "F")
-                {
-                    courseWomen = sex.total;
-                }
+            float x =
+                normalizationFactor
+                * System.Convert.ToSingle(sexClassification.totalWomen)
+                / maxWomen;
 
-                if (sex.name == "M")
-                {
-                    courseMen = sex.total;
-                }
-            }
+            float y =
+                normalizationFactor
+                * System.Convert.ToSingle(sexClassification.difference)
+                / maxDiff;
 
-            if (courseWomen == 0 || courseMen == 0)
-            {
-                courseDiff = 1;
-            }
-            else
-            {
-                if (courseWomen > courseMen)
-                {
-                    courseDiff = Mathf.Abs(Mathf.RoundToInt(courseWomen / courseMen));
-                }
-                else
-                {
-                    courseDiff = Mathf.Abs(Mathf.RoundToInt(courseMen / courseWomen));
-                }
-            }
-
-            float x = normalizationFactor * System.Convert.ToSingle(courseWomen) / maxWomen;
-            float y = normalizationFactor * System.Convert.ToSingle(courseDiff) / maxDiff;
-            float z = normalizationFactor * System.Convert.ToSingle(courseMen) / maxMen;
+            float z =
+                normalizationFactor * System.Convert.ToSingle(sexClassification.totalMen) / maxMen;
 
             ScatterplotDataPoint newDataPoint = Instantiate(
                     pointPrefab,

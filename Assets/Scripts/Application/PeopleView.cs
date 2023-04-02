@@ -35,8 +35,6 @@ public class PeopleView : MonoBehaviour
 
     public const float BASE_PERSON_SCALE = 0.05f;
 
-    List<SemesterUFF> semestersList = null;
-
     Boundaries boundaries;
 
     int loadedYear = DEFAULT_YEAR;
@@ -64,7 +62,6 @@ public class PeopleView : MonoBehaviour
 
         boundaries = new Boundaries(minX, maxX, minZ, maxZ);
 
-        ParseDataset("Assets/Resources/Data/data-by-semesters.json");
         LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER, DEFAULT_COURSE_ID);
     }
 
@@ -140,180 +137,159 @@ public class PeopleView : MonoBehaviour
         }
     }
 
-    public void ParseDataset(string datasetPath)
-    {
-        string text = File.ReadAllText(datasetPath);
-
-        SemestersUFF semesters = JsonUtility.FromJson<SemestersUFF>(text);
-
-        semestersList = semesters.Semester;
-    }
-
     public void LoadPoints(int year, int semester, int courseId, bool grouped = false)
     {
-        Debug.Log("Loading points for year " + year + " and semester " + semester);
+        Debug.Log("PeopleView: loading points for year " + year + " and semester " + semester);
 
         if (people != null)
             DumpPoints();
 
-        SemesterUFF requestedSemester = null;
+        CourseUFF course = DataManager.Instance.GetCourse(year, semester, courseId);
 
-        foreach (SemesterUFF semesterItem in semestersList)
+        if (course == null)
         {
-            if (semesterItem.year == year && semesterItem.period == semester)
-            {
-                requestedSemester = semesterItem;
-                break;
-            }
-        }
-
-        if (requestedSemester == null)
-        {
-            Debug.Log("Semester not found");
+            Debug.Log("Semester or course not found");
             return;
         }
 
-        foreach (CourseUFF course in requestedSemester.courses)
+        if (course.id == courseId)
         {
-            if (course.id == courseId)
+            int courseWomen = 0;
+            int courseMen = 0;
+
+            foreach (ClassificationUFF sex in course.sex)
             {
-                int courseWomen = 0;
-                int courseMen = 0;
-
-                foreach (ClassificationUFF sex in course.sex)
+                if (sex.name == "F")
                 {
-                    if (sex.name == "F")
-                    {
-                        courseWomen = sex.total;
-                    }
-
-                    if (sex.name == "M")
-                    {
-                        courseMen = sex.total;
-                    }
+                    courseWomen = sex.total;
                 }
 
-                people = new List<PeopleNode>();
-
-                if (grouped)
+                if (sex.name == "M")
                 {
-                    float womenGroupRadius = courseWomen / 3.5f;
-                    float menGroupRadius = courseMen / 3.5f;
-
-                    Vector2 womenGroupCenterXZ = new Vector2(0, -womenGroupRadius - 1);
-                    Vector2 menGroupCenterXZ = new Vector2(0, menGroupRadius + 1);
-
-                    for (int i = 0; i < courseWomen; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.parent = gameObject.transform;
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
-
-                        float random = Random.Range(0, womenGroupRadius);
-                        float theta = Random.Range(0, 2 * Mathf.PI);
-
-                        float x = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Cos(theta);
-                        float z = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Sin(theta);
-
-                        float xRelativeToCenter = x + womenGroupCenterXZ.x;
-                        float zRelativeToCenter = z + womenGroupCenterXZ.y;
-
-                        character.transform.position = new Vector3(
-                            xRelativeToCenter,
-                            characterYPosition,
-                            zRelativeToCenter
-                        );
-                    }
-
-                    for (int i = 0; i < courseMen; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.parent = gameObject.transform;
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = new Color(1.0f, 0.6f, 0.1f, 1.0f);
-
-                        float random = Random.Range(0, menGroupRadius);
-                        float theta = Random.Range(0, 2 * Mathf.PI);
-
-                        float x = Mathf.Sqrt(random * menGroupRadius) * Mathf.Cos(theta);
-                        float z = Mathf.Sqrt(random * menGroupRadius) * Mathf.Sin(theta);
-
-                        float xRelativeToCenter = x + menGroupCenterXZ.x;
-                        float zRelativeToCenter = z + menGroupCenterXZ.y;
-
-                        character.transform.position = new Vector3(
-                            xRelativeToCenter,
-                            characterYPosition,
-                            zRelativeToCenter
-                        );
-                    }
+                    courseMen = sex.total;
                 }
-                else
+            }
+
+            people = new List<PeopleNode>();
+
+            if (grouped)
+            {
+                float womenGroupRadius = courseWomen / 3.5f;
+                float menGroupRadius = courseMen / 3.5f;
+
+                Vector2 womenGroupCenterXZ = new Vector2(0, -womenGroupRadius - 1);
+                Vector2 menGroupCenterXZ = new Vector2(0, menGroupRadius + 1);
+
+                for (int i = 0; i < courseWomen; i++)
                 {
-                    for (int i = 0; i < courseWomen; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.SetParent(gameObject.transform, true);
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
-                        character.transform.localScale = new Vector3(
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale
-                        );
+                    GameObject character = Instantiate(characterPrefab);
+                    character.transform.parent = gameObject.transform;
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
 
-                        Vector2 horizontalPosition = boundaries.GetRandomPoint();
-                        character.transform.localPosition = new Vector3(
-                            horizontalPosition.x,
-                            0.02f,
-                            horizontalPosition.y
-                        );
+                    float random = Random.Range(0, womenGroupRadius);
+                    float theta = Random.Range(0, 2 * Mathf.PI);
 
-                        people.Add(
-                            new PeopleNode(
-                                character,
-                                new Color(0.4f, 0.1f, 1.0f, 1.0f),
-                                new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
-                            )
-                        );
-                    }
+                    float x = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Cos(theta);
+                    float z = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Sin(theta);
 
-                    for (int i = 0; i < courseMen; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.parent = gameObject.transform;
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f);
-                        character.transform.localScale = new Vector3(
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale
-                        );
+                    float xRelativeToCenter = x + womenGroupCenterXZ.x;
+                    float zRelativeToCenter = z + womenGroupCenterXZ.y;
 
-                        Vector2 horizontalPosition = boundaries.GetRandomPoint();
-                        character.transform.localPosition = new Vector3(
-                            horizontalPosition.x,
-                            0.02f,
-                            horizontalPosition.y
-                        );
+                    character.transform.position = new Vector3(
+                        xRelativeToCenter,
+                        characterYPosition,
+                        zRelativeToCenter
+                    );
+                }
 
-                        people.Add(
-                            new PeopleNode(
-                                character,
-                                new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f),
-                                new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
-                            )
-                        );
-                    }
+                for (int i = 0; i < courseMen; i++)
+                {
+                    GameObject character = Instantiate(characterPrefab);
+                    character.transform.parent = gameObject.transform;
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(1.0f, 0.6f, 0.1f, 1.0f);
+
+                    float random = Random.Range(0, menGroupRadius);
+                    float theta = Random.Range(0, 2 * Mathf.PI);
+
+                    float x = Mathf.Sqrt(random * menGroupRadius) * Mathf.Cos(theta);
+                    float z = Mathf.Sqrt(random * menGroupRadius) * Mathf.Sin(theta);
+
+                    float xRelativeToCenter = x + menGroupCenterXZ.x;
+                    float zRelativeToCenter = z + menGroupCenterXZ.y;
+
+                    character.transform.position = new Vector3(
+                        xRelativeToCenter,
+                        characterYPosition,
+                        zRelativeToCenter
+                    );
+                }
+            }
+            else
+            {
+                for (int i = 0; i < courseWomen; i++)
+                {
+                    GameObject character = Instantiate(characterPrefab);
+                    character.transform.SetParent(gameObject.transform, true);
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
+                    character.transform.localScale = new Vector3(
+                        BASE_PERSON_SCALE * virtualScale,
+                        BASE_PERSON_SCALE * virtualScale,
+                        BASE_PERSON_SCALE * virtualScale
+                    );
+
+                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
+                    character.transform.localPosition = new Vector3(
+                        horizontalPosition.x,
+                        0.02f,
+                        horizontalPosition.y
+                    );
+
+                    people.Add(
+                        new PeopleNode(
+                            character,
+                            new Color(0.4f, 0.1f, 1.0f, 1.0f),
+                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
+                        )
+                    );
+                }
+
+                for (int i = 0; i < courseMen; i++)
+                {
+                    GameObject character = Instantiate(characterPrefab);
+                    character.transform.parent = gameObject.transform;
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f);
+                    character.transform.localScale = new Vector3(
+                        BASE_PERSON_SCALE * virtualScale,
+                        BASE_PERSON_SCALE * virtualScale,
+                        BASE_PERSON_SCALE * virtualScale
+                    );
+
+                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
+                    character.transform.localPosition = new Vector3(
+                        horizontalPosition.x,
+                        0.02f,
+                        horizontalPosition.y
+                    );
+
+                    people.Add(
+                        new PeopleNode(
+                            character,
+                            new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f),
+                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
+                        )
+                    );
                 }
             }
         }

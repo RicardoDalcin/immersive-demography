@@ -427,7 +427,7 @@ PrefabInstance:
       objectReference: {fileID: 2800000, guid: bb1b4a9241fba2042a81428e917afd5d, type: 3}
     - target: {fileID: 8779034279059886464, guid: 3f1f46cbecbe08e46a303ccfdb5b498a, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8779034279059886464, guid: 3f1f46cbecbe08e46a303ccfdb5b498a, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -435,11 +435,11 @@ PrefabInstance:
       objectReference: {fileID: 634948884}
     - target: {fileID: 8779034279059886464, guid: 3f1f46cbecbe08e46a303ccfdb5b498a, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: MoveToScene
+      value: ChangeView
       objectReference: {fileID: 0}
     - target: {fileID: 8779034279059886464, guid: 3f1f46cbecbe08e46a303ccfdb5b498a, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: ChangeScene, Assembly-CSharp
+      value: SwitchViews, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8779034279059886464, guid: 3f1f46cbecbe08e46a303ccfdb5b498a, type: 3}
       propertyPath: OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
@@ -2403,7 +2403,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 634948882}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c6cf1a1cf741cd43bcb1632ea408f6b, type: 3}
+  m_Script: {fileID: 11500000, guid: 7640ce317e22bfe44a677b81b45ea4f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &640731714
@@ -3446,6 +3446,7 @@ GameObject:
   - component: {fileID: 1068005323}
   - component: {fileID: 1068005322}
   - component: {fileID: 1068005321}
+  - component: {fileID: 1068005325}
   m_Layer: 0
   m_Name: SliderValue
   m_TagString: Untagged
@@ -3627,6 +3628,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1068005325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1068005319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2136e3ae08b8ef4f96e0545e87301e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textMesh: {fileID: 0}
 --- !u!1 &1071205568
 GameObject:
   m_ObjectHideFlags: 0
@@ -3934,7 +3948,7 @@ GameObject:
   - component: {fileID: 1138010337}
   - component: {fileID: 1138010336}
   m_Layer: 0
-  m_Name: Manager
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3949,7 +3963,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1138010335}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf165739dc7f4d349823a3818355b9d0, type: 3}
+  m_Script: {fileID: 11500000, guid: d0b60a9f4cf63e34f8d0ce6e34c7e289, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   scatterplot: {fileID: 1071205568}
@@ -5311,26 +5325,38 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[2].m_Mode
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 1068005321}
+      objectReference: {fileID: 1068005325}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[2].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1071205572}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_Target
+      value: 
+      objectReference: {fileID: 475172195}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[2].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
@@ -5342,12 +5368,20 @@ PrefabInstance:
       value: OnSliderUpdated
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_MethodName
+      value: OnSliderUpdated
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
       value: ShowSemesterValueUFF, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[2].m_TargetAssemblyTypeName
-      value: ScatterplotUFF, Assembly-CSharp
+      value: Scatterplot, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_TargetAssemblyTypeName
+      value: PeopleView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -5355,6 +5389,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
       propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[2].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7993839106200101939, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
+      propertyPath: OnValueUpdated.m_PersistentCalls.m_Calls.Array.data[3].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7993839106200101949, guid: a7556dea0ca1e4442ade81ef1da5028b, type: 3}
