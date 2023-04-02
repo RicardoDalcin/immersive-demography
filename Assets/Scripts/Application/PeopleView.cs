@@ -44,7 +44,7 @@ public class PeopleView : MonoBehaviour
     float lastFrameScale = 1.0f;
     float virtualScale = 1.0f;
 
-    bool shouldReloadPeople = false;
+    bool shouldReloadPeople = true;
     int yearToLoad = DEFAULT_YEAR;
     int semesterToLoad = DEFAULT_SEMESTER;
     int courseIdToLoad = DEFAULT_COURSE_ID;
@@ -61,8 +61,6 @@ public class PeopleView : MonoBehaviour
         float maxZ = deskCollider.bounds.max.z;
 
         boundaries = new Boundaries(minX, maxX, minZ, maxZ);
-
-        LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER, DEFAULT_COURSE_ID);
     }
 
     void Update()
@@ -80,7 +78,6 @@ public class PeopleView : MonoBehaviour
             loadedSemester = semesterToLoad;
             loadedCourseId = courseIdToLoad;
 
-            DumpPoints();
             LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad);
         }
 
@@ -139,7 +136,7 @@ public class PeopleView : MonoBehaviour
 
     public void LoadPoints(int year, int semester, int courseId, bool grouped = false)
     {
-        Debug.Log("PeopleView: loading points for year " + year + " and semester " + semester);
+        Debug.Log("PeopleView: loading points for " + year + "/" + semester);
 
         if (people != null)
             DumpPoints();

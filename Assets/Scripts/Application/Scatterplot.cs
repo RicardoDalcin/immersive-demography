@@ -19,14 +19,11 @@ public class Scatterplot : MonoBehaviour
     int loadedYear = DEFAULT_YEAR;
     int loadedSemester = DEFAULT_SEMESTER;
 
-    bool shouldReloadScatterplot = false;
+    bool shouldReloadScatterplot = true;
     int yearToLoad = DEFAULT_YEAR;
     int semesterToLoad = DEFAULT_SEMESTER;
 
-    void Start()
-    {
-        LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER);
-    }
+    void Start() { }
 
     void Update()
     {
@@ -43,13 +40,12 @@ public class Scatterplot : MonoBehaviour
         loadedYear = yearToLoad;
         loadedSemester = semesterToLoad;
 
-        DumpPoints();
         LoadPoints(yearToLoad, semesterToLoad);
     }
 
     public void LoadPoints(int year, int semester)
     {
-        Debug.Log("Scatterplot: loading points for year " + year + " and semester " + semester);
+        Debug.Log("Scatterplot: loading points for " + year + "/" + semester);
 
         if (scatterplotPoints != null)
             DumpPoints();
