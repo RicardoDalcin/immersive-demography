@@ -17,6 +17,27 @@ public struct SexClassification
     }
 }
 
+public struct EthnicityClassification
+{
+    public int totalBlack;
+    public int totalBrown;
+    public int totalWhite;
+    public int totalUndeclared;
+
+    public EthnicityClassification(
+        int totalBlack,
+        int totalBrown,
+        int totalWhite,
+        int totalUndeclared
+    )
+    {
+        this.totalBlack = totalBlack;
+        this.totalBrown = totalBrown;
+        this.totalWhite = totalWhite;
+        this.totalUndeclared = totalUndeclared;
+    }
+}
+
 public class DataManager : Singleton<DataManager>
 {
     const string DATASET_PATH = "Assets/Resources/Data/data-by-semesters.json";
@@ -112,5 +133,34 @@ public class DataManager : Singleton<DataManager>
         }
 
         return new SexClassification(totalWomen, totalMen, difference);
+    }
+
+    public EthnicityClassification GetEthnicityClassification(CourseUFF course)
+    {
+        int totalBlack = 0;
+        int totalBrown = 0;
+        int totalWhite = 0;
+        int totalUndeclared = 0;
+
+        foreach (ClassificationUFF ethnicity in course.ethnicity)
+        {
+            switch (ethnicity.name)
+            {
+                case "NEGRA":
+                    totalBlack = ethnicity.total;
+                    break;
+                case "PARDA":
+                    totalBrown = ethnicity.total;
+                    break;
+                case "BRANCA":
+                    totalWhite = ethnicity.total;
+                    break;
+                case "NAO DECLARADO":
+                    totalUndeclared = ethnicity.total;
+                    break;
+            }
+        }
+
+        return new EthnicityClassification(totalBlack, totalBrown, totalWhite, totalUndeclared);
     }
 }

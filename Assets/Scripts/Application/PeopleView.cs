@@ -7,6 +7,15 @@ using UnityEngine;
 
 public class PeopleView : MonoBehaviour
 {
+    public enum DataView
+    {
+        Sex,
+        Ethnicity,
+        Admission,
+        Nationality,
+        General
+    }
+
     public struct PeopleNode
     {
         public GameObject person;
@@ -33,6 +42,8 @@ public class PeopleView : MonoBehaviour
 
     public const int DEFAULT_COURSE_ID = 1;
 
+    public const DataView DEFAULT_VIEW_ID = DataView.Sex;
+
     public const float BASE_PERSON_SCALE = 0.05f;
 
     Boundaries boundaries;
@@ -40,6 +51,7 @@ public class PeopleView : MonoBehaviour
     int loadedYear = DEFAULT_YEAR;
     int loadedSemester = DEFAULT_SEMESTER;
     int loadedCourseId = DEFAULT_COURSE_ID;
+    DataView loadedView = DEFAULT_VIEW_ID;
 
     float lastFrameScale = 1.0f;
     float virtualScale = 1.0f;
@@ -48,6 +60,7 @@ public class PeopleView : MonoBehaviour
     int yearToLoad = DEFAULT_YEAR;
     int semesterToLoad = DEFAULT_SEMESTER;
     int courseIdToLoad = DEFAULT_COURSE_ID;
+    DataView viewToLoad = DEFAULT_VIEW_ID;
 
     void Start()
     {
@@ -78,7 +91,7 @@ public class PeopleView : MonoBehaviour
             loadedSemester = semesterToLoad;
             loadedCourseId = courseIdToLoad;
 
-            LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad);
+            LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad, viewToLoad);
         }
 
         gameObject.transform.rotation = Quaternion.identity;
@@ -134,9 +147,15 @@ public class PeopleView : MonoBehaviour
         }
     }
 
-    public void LoadPoints(int year, int semester, int courseId, bool grouped = false)
+    public void LoadPoints(
+        int year,
+        int semester,
+        int courseId,
+        DataView view,
+        bool grouped = false
+    )
     {
-        Debug.Log("PeopleView: loading points for " + year + "/" + semester);
+        Debug.Log("PeopleView: loading " + view + " points for " + year + "/" + semester);
 
         if (people != null)
             DumpPoints();
@@ -321,6 +340,7 @@ public class PeopleView : MonoBehaviour
             yearToLoad = year;
             semesterToLoad = semester;
             courseIdToLoad = loadedCourseId;
+            viewToLoad = loadedView;
 
             return;
         }
@@ -329,7 +349,7 @@ public class PeopleView : MonoBehaviour
         loadedSemester = semester;
 
         DumpPoints();
-        LoadPoints(year, semester, loadedCourseId);
+        LoadPoints(year, semester, loadedCourseId, loadedView);
     }
 
     public void OnCourseSliderUpdated(SliderEventData eventData)
@@ -348,6 +368,7 @@ public class PeopleView : MonoBehaviour
             yearToLoad = loadedYear;
             semesterToLoad = loadedSemester;
             courseIdToLoad = courseId;
+            viewToLoad = loadedView;
 
             return;
         }
@@ -355,6 +376,35 @@ public class PeopleView : MonoBehaviour
         loadedCourseId = courseId;
 
         DumpPoints();
-        LoadPoints(loadedYear, loadedSemester, courseId);
+        LoadPoints(loadedYear, loadedSemester, courseId, loadedView);
+    }
+
+    public void OnViewSliderUpdated(SliderEventData eventData)
+    {
+        var arbitraryValue = float.Parse($"{eventData.NewValue}");
+        var viewId = (int)(arbitraryValue * 4);
+
+        var view = (DataView)viewId;
+
+        if (view == loadedView)
+        {
+            return;
+        }
+
+        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
+        {
+            shouldReloadPeople = true;
+            yearToLoad = loadedYear;
+            semesterToLoad = loadedSemester;
+            courseIdToLoad = loadedCourseId;
+            viewToLoad = view;
+
+            return;
+        }
+
+        loadedView = view;
+
+        DumpPoints();
+        LoadPoints(loadedYear, loadedSemester, loadedCourseId, view);
     }
 }
