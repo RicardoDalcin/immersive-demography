@@ -161,7 +161,13 @@ public class PeopleView : MonoBehaviour
         }
     }
 
-    public void LoadPoints(int year, int semester, int courseId, DataView view, bool grouped = true)
+    public void LoadPoints(
+        int year,
+        int semester,
+        int courseId,
+        DataView view,
+        bool grouped = false
+    )
     {
         Debug.Log("PeopleView: loading " + view + " points for " + year + "/" + semester);
 
@@ -236,6 +242,64 @@ public class PeopleView : MonoBehaviour
                         classification.totalUndeclared,
                         "Não declarada",
                         new Color(0.4f, 0.4f, 0.9f, 1.0f)
+                    )
+                );
+            }
+            else if (view == DataView.Admission)
+            {
+                AdmissionClassification classification =
+                    DataManager.Instance.GetAdmissionClassification(course);
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalSisu,
+                        "SISU",
+                        new Color(0.4f, 0.1f, 0.8f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalCourseChange,
+                        "Mudança de Curso",
+                        new Color(0.8f, 0.8f, 0.2f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalExternalTransference,
+                        "Transferência Interinstitucional",
+                        new Color(0.2f, 0.9f, 0.1f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalPublicReentry,
+                        "Reingresso Concurso Público",
+                        new Color(0.1f, 0.8f, 0.4f, 1.0f)
+                    )
+                );
+            }
+            else if (view == DataView.Nationality)
+            {
+                NationalityClassification classification =
+                    DataManager.Instance.GetNationalityClassification(course);
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalBrazilian,
+                        "Brasileira",
+                        new Color(0.8f, 0.4f, 0.7f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalForeigner,
+                        "Estrangeira",
+                        new Color(0.3f, 0.9f, 0.3f, 1.0f)
                     )
                 );
             }

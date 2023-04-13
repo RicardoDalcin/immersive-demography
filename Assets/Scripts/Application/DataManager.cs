@@ -38,6 +38,39 @@ public struct EthnicityClassification
     }
 }
 
+public struct AdmissionClassification
+{
+    public int totalSisu;
+    public int totalCourseChange;
+    public int totalExternalTransference;
+    public int totalPublicReentry;
+
+    public AdmissionClassification(
+        int totalSisu,
+        int totalCourseChange,
+        int totalExternalTransference,
+        int totalPublicReentry
+    )
+    {
+        this.totalSisu = totalSisu;
+        this.totalCourseChange = totalCourseChange;
+        this.totalExternalTransference = totalExternalTransference;
+        this.totalPublicReentry = totalPublicReentry;
+    }
+}
+
+public struct NationalityClassification
+{
+    public int totalBrazilian;
+    public int totalForeigner;
+
+    public NationalityClassification(int totalBrazilian, int totalForeigner)
+    {
+        this.totalBrazilian = totalBrazilian;
+        this.totalForeigner = totalForeigner;
+    }
+}
+
 public class DataManager : Singleton<DataManager>
 {
     const string DATASET_PATH = "Assets/Resources/Data/data-by-semesters.json";
@@ -162,5 +195,60 @@ public class DataManager : Singleton<DataManager>
         }
 
         return new EthnicityClassification(totalBlack, totalBrown, totalWhite, totalUndeclared);
+    }
+
+    public AdmissionClassification GetAdmissionClassification(CourseUFF course)
+    {
+        int totalSisu = 0;
+        int totalCourseChange = 0;
+        int totalExternalTransference = 0;
+        int totalPublicReentry = 0;
+
+        foreach (ClassificationUFF admission in course.admission)
+        {
+            switch (admission.name)
+            {
+                case "SISU 1ª EDICAO":
+                case "SISU 2ª EDICAO":
+                    totalSisu += admission.total;
+                    break;
+                case "MUDANCA DE CURSO":
+                    totalCourseChange = admission.total;
+                    break;
+                case "TRANSFERENCIA INTERINSTITUCIONAL":
+                    totalExternalTransference = admission.total;
+                    break;
+                case "REINGRESSO POR CONCURSO PUBLICO":
+                    totalPublicReentry = admission.total;
+                    break;
+            }
+        }
+
+        return new AdmissionClassification(
+            totalSisu,
+            totalCourseChange,
+            totalExternalTransference,
+            totalPublicReentry
+        );
+    }
+
+    public NationalityClassification GetNationalityClassification(CourseUFF course)
+    {
+        int totalBrazilian = 0;
+        int totalForeigner = 0;
+
+        foreach (ClassificationUFF nationality in course.nationality)
+        {
+            if (nationality.name == "BRASILEIRA")
+            {
+                totalBrazilian = nationality.total;
+            }
+            else
+            {
+                totalForeigner += nationality.total;
+            }
+        }
+
+        return new NationalityClassification(totalBrazilian, totalForeigner);
     }
 }
