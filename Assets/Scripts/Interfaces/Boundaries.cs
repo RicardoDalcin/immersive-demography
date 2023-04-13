@@ -46,4 +46,24 @@ public class Boundaries
 
         return new Vector2(randomX, randomZ);
     }
+
+    public float GetMinX()
+    {
+        return minX;
+    }
+
+    public float GetMaxX()
+    {
+        return maxX;
+    }
+
+    public float GetMinZ()
+    {
+        return minZ;
+    }
+
+    public float GetMaxZ()
+    {
+        return maxZ;
+    }
 }

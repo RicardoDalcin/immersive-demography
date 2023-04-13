@@ -30,6 +30,20 @@ public class PeopleView : MonoBehaviour
         }
     }
 
+    public struct PeopleDataType
+    {
+        public int total;
+        public string label;
+        public Color color;
+
+        public PeopleDataType(int total, string label, Color color)
+        {
+            this.total = total;
+            this.label = label;
+            this.color = color;
+        }
+    }
+
     public GameObject characterPrefab;
     public GameObject environmentDesk;
     public float characterYPosition = 0.0f;
@@ -147,13 +161,7 @@ public class PeopleView : MonoBehaviour
         }
     }
 
-    public void LoadPoints(
-        int year,
-        int semester,
-        int courseId,
-        DataView view,
-        bool grouped = false
-    )
+    public void LoadPoints(int year, int semester, int courseId, DataView view, bool grouped = true)
     {
         Debug.Log("PeopleView: loading " + view + " points for " + year + "/" + semester);
 
@@ -170,142 +178,178 @@ public class PeopleView : MonoBehaviour
 
         if (course.id == courseId)
         {
-            int courseWomen = 0;
-            int courseMen = 0;
+            List<PeopleDataType> dataTypes = new List<PeopleDataType>();
 
-            foreach (ClassificationUFF sex in course.sex)
+            if (view == DataView.Sex)
             {
-                if (sex.name == "F")
-                {
-                    courseWomen = sex.total;
-                }
+                SexClassification classification = DataManager.Instance.GetSexClassification(
+                    course
+                );
 
-                if (sex.name == "M")
-                {
-                    courseMen = sex.total;
-                }
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalWomen,
+                        "Feminino",
+                        new Color(0.4f, 0.1f, 1.0f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalMen,
+                        "Masculino",
+                        new Color(1.0f, 0.6f, 0.5f, 1.0f)
+                    )
+                );
+            }
+            else if (view == DataView.Ethnicity)
+            {
+                EthnicityClassification classification =
+                    DataManager.Instance.GetEthnicityClassification(course);
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalBlack,
+                        "Negra",
+                        new Color(0.7f, 0.4f, 0.3f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalBrown,
+                        "Parda",
+                        new Color(0.8f, 0.2f, 0.2f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalWhite,
+                        "Branca",
+                        new Color(0.2f, 0.9f, 0.5f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
+                        classification.totalUndeclared,
+                        "Não declarada",
+                        new Color(0.4f, 0.4f, 0.9f, 1.0f)
+                    )
+                );
             }
 
             people = new List<PeopleNode>();
 
             if (grouped)
             {
-                float womenGroupRadius = courseWomen / 3.5f;
-                float menGroupRadius = courseMen / 3.5f;
+                int index = 0;
+                float groupRadius = 0.0f;
+                Vector2 groupCenterXZ = new Vector2(0, 0);
 
-                Vector2 womenGroupCenterXZ = new Vector2(0, -womenGroupRadius - 1);
-                Vector2 menGroupCenterXZ = new Vector2(0, menGroupRadius + 1);
-
-                for (int i = 0; i < courseWomen; i++)
+                foreach (PeopleDataType data in dataTypes)
                 {
-                    GameObject character = Instantiate(characterPrefab);
-                    character.transform.parent = gameObject.transform;
-                    character.transform
-                        .GetChild(1)
-                        .gameObject.GetComponent<Renderer>()
-                        .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
+                    float lastGroupRadius = groupRadius;
+                    Vector2 lastGroupCenterXZ = groupCenterXZ;
 
-                    float random = Random.Range(0, womenGroupRadius);
-                    float theta = Random.Range(0, 2 * Mathf.PI);
+                    groupRadius = data.total / 100.0f;
 
-                    float x = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Cos(theta);
-                    float z = Mathf.Sqrt(random * womenGroupRadius) * Mathf.Sin(theta);
+                    if (index == 0)
+                        groupCenterXZ = new Vector2(
+                            boundaries.GetMinX() + groupRadius + 0.1f,
+                            boundaries.GetMinZ() + groupRadius + 0.1f
+                        );
+                    else
+                        groupCenterXZ = new Vector2(
+                            lastGroupCenterXZ.x + lastGroupRadius + groupRadius,
+                            lastGroupCenterXZ.y
+                        );
 
-                    float xRelativeToCenter = x + womenGroupCenterXZ.x;
-                    float zRelativeToCenter = z + womenGroupCenterXZ.y;
+                    for (int i = 0; i < data.total; i++)
+                    {
+                        GameObject character = Instantiate(characterPrefab);
+                        character.transform.SetParent(gameObject.transform, true);
+                        character.transform
+                            .GetChild(1)
+                            .gameObject.GetComponent<Renderer>()
+                            .material.color = data.color;
+                        character.transform.localScale = new Vector3(
+                            BASE_PERSON_SCALE * virtualScale,
+                            BASE_PERSON_SCALE * virtualScale,
+                            BASE_PERSON_SCALE * virtualScale
+                        );
 
-                    character.transform.position = new Vector3(
-                        xRelativeToCenter,
-                        characterYPosition,
-                        zRelativeToCenter
-                    );
-                }
+                        float random = Random.Range(0, groupRadius);
+                        float theta = Random.Range(0, 2 * Mathf.PI);
 
-                for (int i = 0; i < courseMen; i++)
-                {
-                    GameObject character = Instantiate(characterPrefab);
-                    character.transform.parent = gameObject.transform;
-                    character.transform
-                        .GetChild(1)
-                        .gameObject.GetComponent<Renderer>()
-                        .material.color = new Color(1.0f, 0.6f, 0.1f, 1.0f);
+                        float x = Mathf.Sqrt(random * groupRadius) * Mathf.Cos(theta);
+                        float z = Mathf.Sqrt(random * groupRadius) * Mathf.Sin(theta);
 
-                    float random = Random.Range(0, menGroupRadius);
-                    float theta = Random.Range(0, 2 * Mathf.PI);
+                        float xRelativeToCenter = x + groupCenterXZ.x;
+                        float zRelativeToCenter = z + groupCenterXZ.y;
 
-                    float x = Mathf.Sqrt(random * menGroupRadius) * Mathf.Cos(theta);
-                    float z = Mathf.Sqrt(random * menGroupRadius) * Mathf.Sin(theta);
+                        if (xRelativeToCenter > boundaries.GetMaxX())
+                            xRelativeToCenter = boundaries.GetMaxX() - 0.1f;
+                        else if (xRelativeToCenter < boundaries.GetMinX())
+                            xRelativeToCenter = boundaries.GetMinX() + 0.1f;
 
-                    float xRelativeToCenter = x + menGroupCenterXZ.x;
-                    float zRelativeToCenter = z + menGroupCenterXZ.y;
+                        if (zRelativeToCenter > boundaries.GetMaxZ())
+                            zRelativeToCenter = boundaries.GetMaxZ() - 0.1f;
+                        else if (zRelativeToCenter < boundaries.GetMinZ())
+                            zRelativeToCenter = boundaries.GetMinZ() + 0.1f;
 
-                    character.transform.position = new Vector3(
-                        xRelativeToCenter,
-                        characterYPosition,
-                        zRelativeToCenter
-                    );
+                        character.transform.localPosition = new Vector3(
+                            xRelativeToCenter,
+                            0.02f,
+                            zRelativeToCenter
+                        );
+
+                        people.Add(
+                            new PeopleNode(
+                                character,
+                                data.color,
+                                new Vector3(xRelativeToCenter, 0.02f, zRelativeToCenter)
+                            )
+                        );
+                    }
+
+                    index += 1;
                 }
             }
             else
             {
-                for (int i = 0; i < courseWomen; i++)
+                foreach (PeopleDataType data in dataTypes)
                 {
-                    GameObject character = Instantiate(characterPrefab);
-                    character.transform.SetParent(gameObject.transform, true);
-                    character.transform
-                        .GetChild(1)
-                        .gameObject.GetComponent<Renderer>()
-                        .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
-                    character.transform.localScale = new Vector3(
-                        BASE_PERSON_SCALE * virtualScale,
-                        BASE_PERSON_SCALE * virtualScale,
-                        BASE_PERSON_SCALE * virtualScale
-                    );
+                    for (int i = 0; i < data.total; i++)
+                    {
+                        GameObject character = Instantiate(characterPrefab);
+                        character.transform.SetParent(gameObject.transform, true);
+                        character.transform
+                            .GetChild(1)
+                            .gameObject.GetComponent<Renderer>()
+                            .material.color = data.color;
+                        character.transform.localScale = new Vector3(
+                            BASE_PERSON_SCALE * virtualScale,
+                            BASE_PERSON_SCALE * virtualScale,
+                            BASE_PERSON_SCALE * virtualScale
+                        );
 
-                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
-                    character.transform.localPosition = new Vector3(
-                        horizontalPosition.x,
-                        0.02f,
-                        horizontalPosition.y
-                    );
+                        Vector2 horizontalPosition = boundaries.GetRandomPoint();
+                        character.transform.localPosition = new Vector3(
+                            horizontalPosition.x,
+                            0.02f,
+                            horizontalPosition.y
+                        );
 
-                    people.Add(
-                        new PeopleNode(
-                            character,
-                            new Color(0.4f, 0.1f, 1.0f, 1.0f),
-                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
-                        )
-                    );
-                }
-
-                for (int i = 0; i < courseMen; i++)
-                {
-                    GameObject character = Instantiate(characterPrefab);
-                    character.transform.parent = gameObject.transform;
-                    character.transform
-                        .GetChild(1)
-                        .gameObject.GetComponent<Renderer>()
-                        .material.color = new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f);
-                    character.transform.localScale = new Vector3(
-                        BASE_PERSON_SCALE * virtualScale,
-                        BASE_PERSON_SCALE * virtualScale,
-                        BASE_PERSON_SCALE * virtualScale
-                    );
-
-                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
-                    character.transform.localPosition = new Vector3(
-                        horizontalPosition.x,
-                        0.02f,
-                        horizontalPosition.y
-                    );
-
-                    people.Add(
-                        new PeopleNode(
-                            character,
-                            new Color(1.0f, 0.6f, BASE_PERSON_SCALE, 1.0f),
-                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
-                        )
-                    );
+                        people.Add(
+                            new PeopleNode(
+                                character,
+                                data.color,
+                                new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
+                            )
+                        );
+                    }
                 }
             }
         }
