@@ -9,7 +9,7 @@ public class FirstPersonUFF : MonoBehaviour
 {
     public GameObject characterPrefab;
     public GameObject mainCamera;
-    
+
     public float characterYPosition = 0.0f;
     public List<GameObject> people;
 
@@ -17,22 +17,21 @@ public class FirstPersonUFF : MonoBehaviour
     public const int DEFAULT_YEAR = 2018;
     public const int DEFAULT_SEMESTER = 1;
 
-
     List<SemesterUFF> semestersList = null;
 
     int loadedYear = DEFAULT_YEAR;
     int loadedSemester = DEFAULT_SEMESTER;
-    
+
     void Start()
     {
-        ParseDataset("Assets/Resources/Data/uff.json");
+        ParseDataset("Assets/Resources/Data/data-by-semesters.json");
         LoadPoints(DEFAULT_YEAR, DEFAULT_SEMESTER);
     }
 
     void Update()
     {
         float objectScale = gameObject.transform.localScale.x;
-        
+
         Vector3 cameraForward = mainCamera.transform.forward;
 
         float movement = 1.0f * (objectScale - 1.0f);
@@ -76,35 +75,54 @@ public class FirstPersonUFF : MonoBehaviour
 
         foreach (CourseUFF course in requestedSemester.courses)
         {
-            if (course.name == "CIENCIA DA COMPUTACAO") {
+            if (course.name == "CIENCIA DA COMPUTACAO")
+            {
                 int courseWomen = 0;
                 int courseMen = 0;
 
-                foreach (ClassificationUFF sex in course.sex) {
-                    if (sex.name == "F") {
+                foreach (ClassificationUFF sex in course.sex)
+                {
+                    if (sex.name == "F")
+                    {
                         courseWomen = sex.total;
                     }
 
-                    if (sex.name == "M") {
+                    if (sex.name == "M")
+                    {
                         courseMen = sex.total;
                     }
                 }
-                
-                for (int i = 0; i < courseWomen; i++) {
-                    
+
+                for (int i = 0; i < courseWomen; i++)
+                {
                     GameObject character = Instantiate(characterPrefab);
                     character.transform.parent = gameObject.transform;
-                    character.transform.GetChild(1).gameObject.GetComponent<Renderer>().material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
-                    character.transform.position = new Vector3(Random.Range(-10, 10), characterYPosition, Random.Range(-10, 10));
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(0.4f, 0.1f, 1.0f, 1.0f);
+                    character.transform.position = new Vector3(
+                        Random.Range(-10, 10),
+                        characterYPosition,
+                        Random.Range(-10, 10)
+                    );
 
                     people.Add(character);
                 }
 
-                for (int i = 0; i < courseMen; i++) {
+                for (int i = 0; i < courseMen; i++)
+                {
                     GameObject character = Instantiate(characterPrefab);
                     character.transform.parent = gameObject.transform;
-                    character.transform.GetChild(1).gameObject.GetComponent<Renderer>().material.color = new Color(1.0f, 0.6f, 0.1f, 1.0f);
-                    character.transform.position = new Vector3(Random.Range(-10, 10), characterYPosition, Random.Range(-10, 10));
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = new Color(1.0f, 0.6f, 0.1f, 1.0f);
+                    character.transform.position = new Vector3(
+                        Random.Range(-10, 10),
+                        characterYPosition,
+                        Random.Range(-10, 10)
+                    );
 
                     people.Add(character);
                 }
@@ -116,7 +134,7 @@ public class FirstPersonUFF : MonoBehaviour
     {
         foreach (GameObject person in people)
         {
-            Destroy (person);
+            Destroy(person);
         }
     }
 
@@ -130,7 +148,8 @@ public class FirstPersonUFF : MonoBehaviour
         var year = FIRST_YEAR + (int)(value / 2);
         var semester = isEven ? 1 : 2;
 
-        if (year == loadedYear && semester == loadedSemester) {
+        if (year == loadedYear && semester == loadedSemester)
+        {
             return;
         }
 
