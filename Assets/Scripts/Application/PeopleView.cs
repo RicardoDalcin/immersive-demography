@@ -76,6 +76,8 @@ public class PeopleView : MonoBehaviour
     int courseIdToLoad = DEFAULT_COURSE_ID;
     DataView viewToLoad = DEFAULT_VIEW_ID;
 
+    public bool shouldGroup = false;
+
     void Start()
     {
         Collider selfCollider = gameObject.GetComponent<Collider>();
@@ -105,7 +107,7 @@ public class PeopleView : MonoBehaviour
             loadedSemester = semesterToLoad;
             loadedCourseId = courseIdToLoad;
 
-            LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad, viewToLoad);
+            LoadPoints(yearToLoad, semesterToLoad, courseIdToLoad, viewToLoad, shouldGroup);
         }
 
         gameObject.transform.rotation = Quaternion.identity;
@@ -457,7 +459,7 @@ public class PeopleView : MonoBehaviour
         loadedSemester = semester;
 
         DumpPoints();
-        LoadPoints(year, semester, loadedCourseId, loadedView);
+        LoadPoints(year, semester, loadedCourseId, loadedView, shouldGroup);
     }
 
     public void OnCourseSliderUpdated(SliderEventData eventData)
@@ -484,7 +486,7 @@ public class PeopleView : MonoBehaviour
         loadedCourseId = courseId;
 
         DumpPoints();
-        LoadPoints(loadedYear, loadedSemester, courseId, loadedView);
+        LoadPoints(loadedYear, loadedSemester, courseId, loadedView, shouldGroup);
     }
 
     public void OnViewSliderUpdated(SliderEventData eventData)
@@ -513,6 +515,14 @@ public class PeopleView : MonoBehaviour
         loadedView = view;
 
         DumpPoints();
-        LoadPoints(loadedYear, loadedSemester, loadedCourseId, view);
+        LoadPoints(loadedYear, loadedSemester, loadedCourseId, view, shouldGroup);
+    }
+
+    public void OnGroupSwitchUpdate()
+    {
+        shouldGroup = !shouldGroup;
+
+        DumpPoints();
+        LoadPoints(loadedYear, loadedSemester, loadedCourseId, loadedView, shouldGroup);
     }
 }
