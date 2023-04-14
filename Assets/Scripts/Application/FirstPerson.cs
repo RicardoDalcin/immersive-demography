@@ -48,6 +48,14 @@ public class FirstPerson : MonoBehaviour
     public GameObject mainCamera;
     public float characterYPosition = 0.0f;
 
+    public GameObject femaleCharacterPrefab;
+    public GameObject maleCharacterPrefab;
+
+    public Material blackSkin;
+    public Material brownSkin;
+    public Material yellowSkin;
+    public Material whiteSkin;
+
     public List<PeopleNode> people;
 
     public const int FIRST_YEAR = 2017;
@@ -111,15 +119,16 @@ public class FirstPerson : MonoBehaviour
             displacement += new Vector2(forward.x, forward.z) * forwardMovement;
         }
 
-        UpdatePeople();
+        if (loadedView != DataView.General)
+        {
+            UpdatePeople();
+        }
 
         gameObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
     }
 
     void UpdatePeople()
     {
-        Debug.Log("Camera forward: " + mainCamera.transform.forward);
-        Debug.Log("Displacement: " + displacement);
         foreach (PeopleNode peopleNode in people)
         {
             GameObject person = peopleNode.person;
@@ -150,6 +159,161 @@ public class FirstPerson : MonoBehaviour
 
         if (people != null)
             DumpPoints();
+
+        if (view == DataView.General)
+        {
+            CourseIndividual courseIndividual = DataManager.Instance.GetCourseIndividual(
+                year,
+                semester,
+                courseId
+            );
+
+            if (courseIndividual == null)
+            {
+                Debug.Log("Semester or course not found");
+                return;
+            }
+
+            foreach (CoursePerson person in courseIndividual.people)
+            {
+                if (person.sex == "M")
+                {
+                    GameObject character = Instantiate(maleCharacterPrefab);
+                    character.transform.SetParent(gameObject.transform, true);
+                    character.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
+                    character.transform.localPosition = new Vector3(
+                        horizontalPosition.x,
+                        characterYPosition,
+                        horizontalPosition.y
+                    );
+
+                    float randomRotation = Random.Range(0, 360);
+
+                    character.transform.Rotate(new Vector3(0, randomRotation, 0));
+
+                    GameObject clothes = character.transform.GetChild(2).gameObject;
+
+                    GameObject hairs = clothes.transform
+                        .GetChild(1)
+                        .gameObject.transform.GetChild(1)
+                        .gameObject;
+                    GameObject pants = clothes.transform.GetChild(2).gameObject;
+                    GameObject shirts = clothes.transform.GetChild(3).gameObject;
+
+                    int randomPant = Random.Range(0, pants.transform.childCount);
+                    int randomShirt = Random.Range(0, shirts.transform.childCount);
+                    int randomHair = Random.Range(0, hairs.transform.childCount);
+
+                    pants.transform.GetChild(randomPant).gameObject.SetActive(true);
+                    shirts.transform.GetChild(randomShirt).gameObject.SetActive(true);
+                    hairs.transform.GetChild(randomHair).gameObject.SetActive(true);
+
+                    GameObject mesh = character.transform
+                        .GetChild(1)
+                        .gameObject.transform.GetChild(0)
+                        .gameObject;
+
+                    mesh.GetComponent<SkinnedMeshRenderer>().material = blackSkin;
+
+                    if (person.ethnicity == "NEGRA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = blackSkin;
+                    }
+                    else if (person.ethnicity == "PARDA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = brownSkin;
+                    }
+                    else if (person.ethnicity == "AMARELA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = yellowSkin;
+                    }
+                    else if (person.ethnicity == "BRANCA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = whiteSkin;
+                    }
+
+                    people.Add(
+                        new PeopleNode(
+                            character,
+                            new Color(0.0f, 0.0f, 0.0f, 0.0f),
+                            new Vector3(
+                                horizontalPosition.x,
+                                characterYPosition,
+                                horizontalPosition.y
+                            )
+                        )
+                    );
+                }
+                else if (person.sex == "F")
+                {
+                    GameObject character = Instantiate(femaleCharacterPrefab);
+                    character.transform.SetParent(gameObject.transform, true);
+                    character.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
+                    character.transform.localPosition = new Vector3(
+                        horizontalPosition.x,
+                        characterYPosition,
+                        horizontalPosition.y
+                    );
+
+                    float randomRotation = Random.Range(0, 360);
+
+                    character.transform.Rotate(new Vector3(0, randomRotation, 0));
+
+                    GameObject clothes = character.transform.GetChild(2).gameObject;
+
+                    GameObject pants = clothes.transform.GetChild(1).gameObject;
+                    GameObject shirts = clothes.transform.GetChild(2).gameObject;
+
+                    int randomPant = Random.Range(0, pants.transform.childCount);
+                    int randomShirt = Random.Range(0, shirts.transform.childCount);
+
+                    pants.transform.GetChild(randomPant).gameObject.SetActive(true);
+                    shirts.transform.GetChild(randomShirt).gameObject.SetActive(true);
+
+                    GameObject mesh = character.transform
+                        .GetChild(1)
+                        .gameObject.transform.GetChild(0)
+                        .gameObject;
+
+                    mesh.GetComponent<SkinnedMeshRenderer>().material = blackSkin;
+
+                    if (person.ethnicity == "NEGRA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = blackSkin;
+                    }
+                    else if (person.ethnicity == "PARDA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = brownSkin;
+                    }
+                    else if (person.ethnicity == "AMARELA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = yellowSkin;
+                    }
+                    else if (person.ethnicity == "BRANCA")
+                    {
+                        mesh.GetComponent<SkinnedMeshRenderer>().material = whiteSkin;
+                    }
+
+                    people.Add(
+                        new PeopleNode(
+                            character,
+                            new Color(0.0f, 0.0f, 0.0f, 0.0f),
+                            new Vector3(
+                                horizontalPosition.x,
+                                characterYPosition,
+                                horizontalPosition.y
+                            )
+                        )
+                    );
+                }
+            }
+
+            return;
+        }
 
         CourseUFF course = DataManager.Instance.GetCourse(year, semester, courseId);
 
@@ -317,7 +481,11 @@ public class FirstPerson : MonoBehaviour
                         new PeopleNode(
                             character,
                             data.color,
-                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
+                            new Vector3(
+                                horizontalPosition.x,
+                                characterYPosition,
+                                horizontalPosition.y
+                            )
                         )
                     );
                 }

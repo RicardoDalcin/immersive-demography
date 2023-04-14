@@ -4189,6 +4189,12 @@ MonoBehaviour:
   characterPrefab: {fileID: 8654250720420973338, guid: 34115fd4eff069845a47d22ce756724e, type: 3}
   mainCamera: {fileID: 1723172371}
   characterYPosition: -1.8
+  femaleCharacterPrefab: {fileID: 6175854162344834896, guid: e8fc51b7fe09d0748beca9048d8c4fc9, type: 3}
+  maleCharacterPrefab: {fileID: 1928959829778600372, guid: cf8b19b9752c1b1468d09d70d87bd61f, type: 3}
+  blackSkin: {fileID: 2100000, guid: d851fd2fe66221848881c5359f99685f, type: 2}
+  brownSkin: {fileID: 2100000, guid: 9542f8b28f2efdf4f86de6ccaa40183c, type: 2}
+  yellowSkin: {fileID: 2100000, guid: b174859716df35d46922727623f5c462, type: 2}
+  whiteSkin: {fileID: 2100000, guid: 1d82c06ec628b22438cc881899c1590b, type: 2}
 --- !u!1 &1686026777
 GameObject:
   m_ObjectHideFlags: 0
