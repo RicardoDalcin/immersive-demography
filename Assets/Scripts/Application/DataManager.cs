@@ -21,18 +21,21 @@ public struct EthnicityClassification
 {
     public int totalBlack;
     public int totalBrown;
+    public int totalYellow;
     public int totalWhite;
     public int totalUndeclared;
 
     public EthnicityClassification(
         int totalBlack,
         int totalBrown,
+        int totalYellow,
         int totalWhite,
         int totalUndeclared
     )
     {
         this.totalBlack = totalBlack;
         this.totalBrown = totalBrown;
+        this.totalYellow = totalYellow;
         this.totalWhite = totalWhite;
         this.totalUndeclared = totalUndeclared;
     }
@@ -74,12 +77,15 @@ public struct NationalityClassification
 public class DataManager : Singleton<DataManager>
 {
     const string DATASET_PATH = "Assets/Resources/Data/data-by-semesters.json";
+    const string INDIVIDUAL_DATASET_PATH = "Assets/Resources/Data/individual.json";
 
     List<SemesterUFF> semestersList = null;
+    List<SemesterIndividual> semestersIndividualList = null;
 
     void Start()
     {
         ParseDataset(DATASET_PATH);
+        ParseIndividualDataset(INDIVIDUAL_DATASET_PATH);
     }
 
     void ParseDataset(string datasetPath)
@@ -89,6 +95,15 @@ public class DataManager : Singleton<DataManager>
         SemestersUFF semesters = JsonUtility.FromJson<SemestersUFF>(text);
 
         semestersList = semesters.Semester;
+    }
+
+    void ParseIndividualDataset(string datasetPath)
+    {
+        string text = File.ReadAllText(datasetPath);
+
+        SemestersIndividual semesters = JsonUtility.FromJson<SemestersIndividual>(text);
+
+        semestersIndividualList = semesters.Semester;
     }
 
     public List<SemesterUFF> GetSemestersList()
@@ -109,6 +124,19 @@ public class DataManager : Singleton<DataManager>
         return null;
     }
 
+    public SemesterIndividual GetSemesterIndividual(int year, int semester)
+    {
+        foreach (SemesterIndividual semesterItem in semestersIndividualList)
+        {
+            if (semesterItem.year == year && semesterItem.period == semester)
+            {
+                return semesterItem;
+            }
+        }
+
+        return null;
+    }
+
     public CourseUFF GetCourse(int year, int semester, int courseId)
     {
         SemesterUFF requestedSemester = GetSemester(year, semester);
@@ -119,6 +147,26 @@ public class DataManager : Singleton<DataManager>
         }
 
         foreach (CourseUFF courseItem in requestedSemester.courses)
+        {
+            if (courseItem.id == courseId)
+            {
+                return courseItem;
+            }
+        }
+
+        return null;
+    }
+
+    public CourseIndividual GetCourseIndividual(int year, int semester, int courseId)
+    {
+        SemesterIndividual requestedSemester = GetSemesterIndividual(year, semester);
+
+        if (requestedSemester == null)
+        {
+            return null;
+        }
+
+        foreach (CourseIndividual courseItem in requestedSemester.courses)
         {
             if (courseItem.id == courseId)
             {
@@ -172,6 +220,7 @@ public class DataManager : Singleton<DataManager>
     {
         int totalBlack = 0;
         int totalBrown = 0;
+        int totalYellow = 0;
         int totalWhite = 0;
         int totalUndeclared = 0;
 
@@ -185,6 +234,9 @@ public class DataManager : Singleton<DataManager>
                 case "PARDA":
                     totalBrown = ethnicity.total;
                     break;
+                case "AMARELA":
+                    totalYellow = ethnicity.total;
+                    break;
                 case "BRANCA":
                     totalWhite = ethnicity.total;
                     break;
@@ -194,7 +246,13 @@ public class DataManager : Singleton<DataManager>
             }
         }
 
-        return new EthnicityClassification(totalBlack, totalBrown, totalWhite, totalUndeclared);
+        return new EthnicityClassification(
+            totalBlack,
+            totalBrown,
+            totalYellow,
+            totalWhite,
+            totalUndeclared
+        );
     }
 
     public AdmissionClassification GetAdmissionClassification(CourseUFF course)

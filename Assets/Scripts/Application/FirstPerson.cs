@@ -208,6 +208,14 @@ public class FirstPerson : MonoBehaviour
 
                 dataTypes.Add(
                     new PeopleDataType(
+                        classification.totalYellow,
+                        "Amarela",
+                        new Color(0.5f, 0.2f, 0.8f, 1.0f)
+                    )
+                );
+
+                dataTypes.Add(
+                    new PeopleDataType(
                         classification.totalWhite,
                         "Branca",
                         new Color(0.2f, 0.9f, 0.5f, 1.0f)
