@@ -5,7 +5,7 @@ using Microsoft.MixedReality.Toolkit.UI;
 using TMPro;
 using UnityEngine;
 
-public class PeopleView : MonoBehaviour
+public class FirstPerson : MonoBehaviour
 {
     public enum DataView
     {
@@ -45,7 +45,7 @@ public class PeopleView : MonoBehaviour
     }
 
     public GameObject characterPrefab;
-    public GameObject environmentDesk;
+    public GameObject mainCamera;
     public float characterYPosition = 0.0f;
 
     public List<PeopleNode> people;
@@ -68,7 +68,7 @@ public class PeopleView : MonoBehaviour
     DataView loadedView = DEFAULT_VIEW_ID;
 
     float lastFrameScale = 1.0f;
-    float virtualScale = 1.0f;
+    Vector2 displacement = new Vector2(0.0f, 0.0f);
 
     bool shouldReloadPeople = true;
     int yearToLoad = DEFAULT_YEAR;
@@ -78,25 +78,11 @@ public class PeopleView : MonoBehaviour
 
     void Start()
     {
-        Collider selfCollider = gameObject.GetComponent<Collider>();
-
-        Collider deskCollider = environmentDesk.GetComponent<Collider>();
-
-        float minX = deskCollider.bounds.min.x;
-        float maxX = deskCollider.bounds.max.x;
-        float minZ = deskCollider.bounds.min.z;
-        float maxZ = deskCollider.bounds.max.z;
-
-        boundaries = new Boundaries(minX, maxX, minZ, maxZ);
+        boundaries = new Boundaries(-20, 20, -20, 20);
     }
 
     void Update()
     {
-        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
-        {
-            return;
-        }
-
         if (shouldReloadPeople)
         {
             shouldReloadPeople = false;
@@ -116,13 +102,13 @@ public class PeopleView : MonoBehaviour
 
         if (changeInScale != 0.0f && gameObject.transform.localScale.x != 1.0f)
         {
-            virtualScale += changeInScale;
+            // convert scale up to forward movement in the direction of the camera
+            // scale down is the opposite
+            float forwardMovement = changeInScale * 10.0f;
 
-            if (virtualScale < 0.1f)
-                virtualScale = 0.1f;
+            Vector3 forward = mainCamera.transform.forward;
 
-            if (virtualScale > 1.0f)
-                virtualScale = 1.0f;
+            displacement += new Vector2(forward.x, forward.z) * forwardMovement;
         }
 
         UpdatePeople();
@@ -132,6 +118,8 @@ public class PeopleView : MonoBehaviour
 
     void UpdatePeople()
     {
+        Debug.Log("Camera forward: " + mainCamera.transform.forward);
+        Debug.Log("Displacement: " + displacement);
         foreach (PeopleNode peopleNode in people)
         {
             GameObject person = peopleNode.person;
@@ -142,26 +130,21 @@ public class PeopleView : MonoBehaviour
             float x = personPosition.x;
             float z = personPosition.z;
 
-            float xRelativeToCenter = originalPosition.x * virtualScale;
-            float zRelativeToCenter = originalPosition.z * virtualScale;
-
-            float zPosition = 0.4f * (1 - virtualScale);
-
             person.transform.localPosition = new Vector3(
-                xRelativeToCenter,
-                personPosition.y,
-                zRelativeToCenter + zPosition
-            );
-
-            person.transform.localScale = new Vector3(
-                BASE_PERSON_SCALE * virtualScale,
-                BASE_PERSON_SCALE * virtualScale,
-                BASE_PERSON_SCALE * virtualScale
+                originalPosition.x - displacement.x,
+                originalPosition.y,
+                originalPosition.z - displacement.y
             );
         }
     }
 
-    public void LoadPoints(int year, int semester, int courseId, DataView view, bool grouped = true)
+    public void LoadPoints(
+        int year,
+        int semester,
+        int courseId,
+        DataView view,
+        bool grouped = false
+    )
     {
         Debug.Log("PeopleView: loading " + view + " points for " + year + "/" + semester);
 
@@ -300,122 +283,35 @@ public class PeopleView : MonoBehaviour
 
             people = new List<PeopleNode>();
 
-            if (grouped)
+            foreach (PeopleDataType data in dataTypes)
             {
-                int index = 0;
-                float groupRadius = 0.0f;
-                Vector2 groupCenterXZ = new Vector2(0, 0);
-
-                foreach (PeopleDataType data in dataTypes)
+                for (int i = 0; i < data.total; i++)
                 {
-                    float lastGroupRadius = groupRadius;
-                    Vector2 lastGroupCenterXZ = groupCenterXZ;
+                    GameObject character = Instantiate(characterPrefab);
+                    character.transform.SetParent(gameObject.transform, true);
+                    character.transform
+                        .GetChild(1)
+                        .gameObject.GetComponent<Renderer>()
+                        .material.color = data.color;
 
-                    groupRadius = data.total / 100.0f;
+                    Vector2 horizontalPosition = boundaries.GetRandomPoint();
 
-                    if (index == 0)
-                        groupCenterXZ = new Vector2(
-                            boundaries.GetMinX() + groupRadius + 0.1f,
-                            (boundaries.GetMinZ() + boundaries.GetMaxZ()) / 2.0f
-                        );
-                    else
-                        groupCenterXZ = new Vector2(
-                            lastGroupCenterXZ.x + lastGroupRadius + groupRadius + 0.03f,
-                            lastGroupCenterXZ.y
-                        );
+                    character.transform.localPosition = new Vector3(
+                        horizontalPosition.x,
+                        characterYPosition,
+                        horizontalPosition.y
+                    );
 
-                    // Generate the circle points
-                    List<Vector2> circlePoints = GenerateCirclePoints(groupRadius, data.total);
+                    float randomRotation = Random.Range(0, 360);
 
-                    for (int i = 0; i < data.total; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.SetParent(gameObject.transform, true);
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = data.color;
-                        character.transform.localScale = new Vector3(
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale
-                        );
-
-                        // Get the point from the circle point list
-                        Vector2 point = circlePoints[i];
-
-                        float xRelativeToCenter = point.x + groupCenterXZ.x;
-                        float zRelativeToCenter = point.y + groupCenterXZ.y;
-
-                        if (xRelativeToCenter > boundaries.GetMaxX())
-                            xRelativeToCenter = boundaries.GetMaxX() - 0.1f;
-                        else if (xRelativeToCenter < boundaries.GetMinX())
-                            xRelativeToCenter = boundaries.GetMinX() + 0.1f;
-
-                        if (zRelativeToCenter > boundaries.GetMaxZ())
-                            zRelativeToCenter = boundaries.GetMaxZ() - 0.1f;
-                        else if (zRelativeToCenter < boundaries.GetMinZ())
-                            zRelativeToCenter = boundaries.GetMinZ() + 0.1f;
-
-                        character.transform.localPosition = new Vector3(
-                            xRelativeToCenter,
-                            0.02f,
-                            zRelativeToCenter
-                        );
-
-                        float randomRotation = Random.Range(0, 360);
-
-                        character.transform.Rotate(new Vector3(0, randomRotation, 0));
-
-                        people.Add(
-                            new PeopleNode(
-                                character,
-                                data.color,
-                                new Vector3(xRelativeToCenter, 0.02f, zRelativeToCenter)
-                            )
-                        );
-                    }
-
-                    index += 1;
-                }
-            }
-            else
-            {
-                foreach (PeopleDataType data in dataTypes)
-                {
-                    for (int i = 0; i < data.total; i++)
-                    {
-                        GameObject character = Instantiate(characterPrefab);
-                        character.transform.SetParent(gameObject.transform, true);
-                        character.transform
-                            .GetChild(1)
-                            .gameObject.GetComponent<Renderer>()
-                            .material.color = data.color;
-                        character.transform.localScale = new Vector3(
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale,
-                            BASE_PERSON_SCALE * virtualScale
-                        );
-
-                        Vector2 horizontalPosition = boundaries.GetRandomPoint();
-                        character.transform.localPosition = new Vector3(
-                            horizontalPosition.x,
-                            0.02f,
-                            horizontalPosition.y
-                        );
-
-                        float randomRotation = Random.Range(0, 360);
-
-                        character.transform.Rotate(new Vector3(0, randomRotation, 0));
-
-                        people.Add(
-                            new PeopleNode(
-                                character,
-                                data.color,
-                                new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
-                            )
-                        );
-                    }
+                    character.transform.Rotate(new Vector3(0, randomRotation, 0), Space.Self);
+                    people.Add(
+                        new PeopleNode(
+                            character,
+                            data.color,
+                            new Vector3(horizontalPosition.x, 0.02f, horizontalPosition.y)
+                        )
+                    );
                 }
             }
         }
@@ -427,25 +323,6 @@ public class PeopleView : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-    }
-
-    private List<Vector2> GenerateCirclePoints(float radius, int count)
-    {
-        List<Vector2> points = new List<Vector2>();
-        float goldenRatio = (1 + Mathf.Sqrt(5)) / 2; // golden ratio constant
-
-        for (int i = 0; i < count; i++)
-        {
-            float angle = 2 * Mathf.PI * i / goldenRatio;
-            float distance = Mathf.Sqrt(i + 0.5f) / Mathf.Sqrt(count);
-
-            float x = radius * distance * Mathf.Cos(angle);
-            float z = radius * distance * Mathf.Sin(angle);
-
-            points.Add(new Vector2(x, z));
-        }
-
-        return points;
     }
 
     public void OnSliderUpdated(SliderEventData eventData)
@@ -460,17 +337,6 @@ public class PeopleView : MonoBehaviour
 
         if (year == loadedYear && semester == loadedSemester)
         {
-            return;
-        }
-
-        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
-        {
-            shouldReloadPeople = true;
-            yearToLoad = year;
-            semesterToLoad = semester;
-            courseIdToLoad = loadedCourseId;
-            viewToLoad = loadedView;
-
             return;
         }
 
@@ -491,17 +357,6 @@ public class PeopleView : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
-        {
-            shouldReloadPeople = true;
-            yearToLoad = loadedYear;
-            semesterToLoad = loadedSemester;
-            courseIdToLoad = courseId;
-            viewToLoad = loadedView;
-
-            return;
-        }
-
         loadedCourseId = courseId;
 
         DumpPoints();
@@ -517,17 +372,6 @@ public class PeopleView : MonoBehaviour
 
         if (view == loadedView)
         {
-            return;
-        }
-
-        if (GameManager.Instance.IsViewEnabled(ApplicationView.PeopleView) == false)
-        {
-            shouldReloadPeople = true;
-            yearToLoad = loadedYear;
-            semesterToLoad = loadedSemester;
-            courseIdToLoad = loadedCourseId;
-            viewToLoad = view;
-
             return;
         }
 
