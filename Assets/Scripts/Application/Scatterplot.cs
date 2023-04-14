@@ -23,7 +23,15 @@ public class Scatterplot : MonoBehaviour
     int yearToLoad = DEFAULT_YEAR;
     int semesterToLoad = DEFAULT_SEMESTER;
 
-    void Start() { }
+    Vector3 originalPos;
+    Vector3 originalScale;
+    Quaternion originalRotation;
+
+    void Start() {
+        originalPos = gameObject.transform.position;
+        originalScale = gameObject.transform.localScale;
+        originalRotation = gameObject.transform.rotation;
+    }
 
     void Update()
     {
@@ -168,5 +176,12 @@ public class Scatterplot : MonoBehaviour
 
         DumpPoints();
         LoadPoints(year, semester);
+    }
+
+    public void OnResetPosition()
+    {
+        gameObject.transform.position = originalPos;
+        gameObject.transform.localScale = originalScale;
+        gameObject.transform.rotation = originalRotation;
     }
 }
