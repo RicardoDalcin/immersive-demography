@@ -76,7 +76,9 @@ public class PeopleView : MonoBehaviour
     int courseIdToLoad = DEFAULT_COURSE_ID;
     DataView viewToLoad = DEFAULT_VIEW_ID;
 
-    public bool shouldGroup = false;
+    bool shouldGroup = false;
+
+    List<PeopleDataType> dataTypes;
 
     void Start()
     {
@@ -180,7 +182,7 @@ public class PeopleView : MonoBehaviour
 
         if (course.id == courseId)
         {
-            List<PeopleDataType> dataTypes = new List<PeopleDataType>();
+            dataTypes = new List<PeopleDataType>();
 
             if (view == DataView.Sex)
             {
@@ -545,5 +547,16 @@ public class PeopleView : MonoBehaviour
 
         DumpPoints();
         LoadPoints(loadedYear, loadedSemester, loadedCourseId, loadedView, shouldGroup);
+    }
+
+    public string GetLabel() 
+    {
+        var result = "";
+
+        foreach (PeopleDataType dataType in dataTypes){
+            result += "<color=#" + ColorUtility.ToHtmlStringRGB(dataType.color) + ">" + dataType.label + "</color>\n";
+        }
+
+        return result;
     }
 }
